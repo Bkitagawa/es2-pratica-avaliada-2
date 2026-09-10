@@ -1,0 +1,5 @@
+.venv/
+__pycache__/
+*.pyc
+golden_master.py
+baseline.json
