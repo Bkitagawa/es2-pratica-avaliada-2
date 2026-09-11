@@ -30,48 +30,45 @@ FAIXAS_IRRF = (
 # CUIDADO ao alterar pq muita coisa depende disso aqui
 
 
-def calcular_folha(funcionario):
-    # funcionario eh um dicionario com os dados do funcionario
-    # campos: nome, salario_base, horas_extras, dependentes, tem_bonus, valor_bonus
-    # retorna outro dicionario com salario_bruto inss irrf liquido etc
-
-    # calcula horas extras (50% a mais)
-    horas_extras = funcionario["horas_extras"]
-    salario_base = funcionario["salario_base"]
-    # 220 = horas mensais padrao no Brasil
+def calcular_valor_horas_extras(salario_base, horas_extras):
     valor_da_hora = salario_base / HORAS_MENSAIS
-    valor_horas_extras = horas_extras * valor_da_hora * ADICIONAL_HORA_EXTRA
+    return horas_extras * valor_da_hora * ADICIONAL_HORA_EXTRA
 
-    # bonus
-    if funcionario["tem_bonus"] == True:
-        bonus = funcionario["valor_bonus"]
-    else:
-        bonus = 0
 
-    # salario bruto
-    salario_bruto = salario_base + valor_horas_extras + bonus
+def calcular_bonus(tem_bonus, valor_bonus):
+    return valor_bonus if tem_bonus else 0
 
-    # INSS - tabela 2024 simplificada
+
+def calcular_inss(salario_bruto):
     contribuicao = 0
     piso_da_faixa = 0
     for teto_da_faixa, aliquota in FAIXAS_INSS:
         if salario_bruto <= teto_da_faixa:
-            inss = contribuicao + (salario_bruto - piso_da_faixa) * aliquota
-            break
+            return contribuicao + (salario_bruto - piso_da_faixa) * aliquota
         contribuicao += (teto_da_faixa - piso_da_faixa) * aliquota
         piso_da_faixa = teto_da_faixa
-    else:
-        inss = contribuicao
+    return contribuicao
 
-    # IRRF - usa base_irrf de calculo (salario bruto - INSS - deducao por dependentes)
-    dependentes = funcionario["dependentes"]
-    base_irrf = salario_bruto - inss - dependentes * DEDUCAO_POR_DEPENDENTE
+
+def calcular_base_irrf(salario_bruto, inss, dependentes):
+    return salario_bruto - inss - dependentes * DEDUCAO_POR_DEPENDENTE
+
+
+def calcular_irrf(base_de_calculo):
     for teto_da_faixa, aliquota, parcela_a_deduzir in FAIXAS_IRRF:
-        if base_irrf <= teto_da_faixa:
-            irrf = max(base_irrf * aliquota - parcela_a_deduzir, 0)
-            break
+        if base_de_calculo <= teto_da_faixa:
+            return max(base_de_calculo * aliquota - parcela_a_deduzir, 0)
+    return 0
+    
+def calcular_folha(funcionario):
+    salario_base = funcionario["salario_base"]
+    valor_horas_extras = calcular_valor_horas_extras(salario_base, funcionario["horas_extras"])
+    bonus = calcular_bonus(funcionario["tem_bonus"], funcionario["valor_bonus"])
+    salario_bruto = salario_base + valor_horas_extras + bonus
 
-    # liquido
+    inss = calcular_inss(salario_bruto)
+    base_irrf = calcular_base_irrf(salario_bruto, inss, funcionario["dependentes"])
+    irrf = calcular_irrf(base_irrf)
     salario_liquido = salario_bruto - inss - irrf
 
     return {
