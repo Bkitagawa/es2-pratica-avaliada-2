@@ -9,84 +9,84 @@ qualidade que o aluno deve identificar e refatorar.
 # CUIDADO ao alterar pq muita coisa depende disso aqui
 
 
-def calcular_folha(f):
-    # f eh um dicionario com os dados do funcionario
+def calcular_folha(funcionario):
+    # funcionario eh um dicionario com os dados do funcionario
     # campos: nome, salario_base, horas_extras, dependentes, tem_bonus, valor_bonus
     # retorna outro dicionario com salario_bruto inss irrf liquido etc
 
     # calcula horas extras (50% a mais)
-    he = f["horas_extras"]
-    sb = f["salario_base"]
+    horas_extras = funcionario["horas_extras"]
+    salario_base = funcionario["salario_base"]
     # 220 = horas mensais padrao no Brasil
-    valor_hora = sb / 220
-    valor_he = he * valor_hora * 1.5
+    valor_da_hora = salario_base / 220
+    valor_horas_extras = horas_extras * valor_da_hora * 1.5
 
     # bonus
-    if f["tem_bonus"] == True:
-        b = f["valor_bonus"]
+    if funcionario["tem_bonus"] == True:
+        bonus = funcionario["valor_bonus"]
     else:
-        b = 0
+        bonus = 0
 
     # salario bruto
-    sbr = sb + valor_he + b
+    salario_bruto = salario_base + valor_horas_extras + bonus
 
     # INSS - tabela 2024 simplificada
-    if sbr <= 1412:
-        ins = sbr * 0.075
+    if salario_bruto <= 1412:
+        inss = salario_bruto * 0.075
     else:
-        if sbr <= 2666.68:
+        if salario_bruto <= 2666.68:
             # faixa 2
-            ins = 1412 * 0.075 + (sbr - 1412) * 0.09
+            inss = 1412 * 0.075 + (salario_bruto - 1412) * 0.09
         else:
-            if sbr <= 4000.03:
+            if salario_bruto <= 4000.03:
                 # faixa 3
-                ins = 1412 * 0.075 + (2666.68 - 1412) * 0.09 + (sbr - 2666.68) * 0.12
+                inss = 1412 * 0.075 + (2666.68 - 1412) * 0.09 + (salario_bruto - 2666.68) * 0.12
             else:
-                if sbr <= 7786.02:
+                if salario_bruto <= 7786.02:
                     # faixa 4
-                    ins = (
+                    inss = (
                         1412 * 0.075
                         + (2666.68 - 1412) * 0.09
                         + (4000.03 - 2666.68) * 0.12
-                        + (sbr - 4000.03) * 0.14
+                        + (salario_bruto - 4000.03) * 0.14
                     )
                 else:
                     # teto
-                    ins = (
+                    inss = (
                         1412 * 0.075
                         + (2666.68 - 1412) * 0.09
                         + (4000.03 - 2666.68) * 0.12
                         + (7786.02 - 4000.03) * 0.14
                     )
 
-    # IRRF - usa base de calculo (salario bruto - INSS - deducao por dependentes)
-    dep = f["dependentes"]
-    base = sbr - ins - dep * 189.59  # 189.59 = deducao por dependente
-    if base <= 2259.20:
+    # IRRF - usa base_irrf de calculo (salario bruto - INSS - deducao por dependentes)
+    dependentes = funcionario["dependentes"]
+    base_irrf = salario_bruto - inss - dependentes * 189.59  # 189.59 = deducao por dependente
+    if base_irrf <= 2259.20:
         irrf = 0
     else:
-        if base <= 2826.65:
-            irrf = base * 0.075 - 169.44
+        if base_irrf <= 2826.65:
+            irrf = base_irrf * 0.075 - 169.44
         else:
-            if base <= 3751.05:
-                irrf = base * 0.15 - 381.44
+            if base_irrf <= 3751.05:
+                irrf = base_irrf * 0.15 - 381.44
             else:
-                if base <= 4664.68:
-                    irrf = base * 0.225 - 662.77
+                if base_irrf <= 4664.68:
+                    irrf = base_irrf * 0.225 - 662.77
                 else:
-                    irrf = base * 0.275 - 896.00
+                    irrf = base_irrf * 0.275 - 896.00
     if irrf < 0:
         irrf = 0
 
     # liquido
-    liq = sbr - ins - irrf
+    salario_liquido = salario_bruto - inss - irrf
 
     return {
-        "nome": f["nome"],
-        "salario_bruto": round(sbr, 2),
-        "valor_horas_extras": round(valor_he, 2),
-        "bonus": round(b, 2),
-        "inss": round(ins, 2),
+        "nome": funcionario["nome"],
+        "salario_bruto": round(salario_bruto, 2),
+        "valor_horas_extras": round(valor_horas_extras, 2),
+        "bonus": round(bonus, 2),
+        "inss": round(inss, 2),
         "irrf": round(irrf, 2),
-        "salario_liquido": round(liq, 2),
+        "salario_liquido": round(salario_liquido, 2),
     }
