@@ -4,6 +4,27 @@ Este arquivo funciona corretamente, mas contém vários problemas de
 qualidade que o aluno deve identificar e refatorar.
 """
 
+HORAS_MENSAIS = 220
+ADICIONAL_HORA_EXTRA = 1.5
+DEDUCAO_POR_DEPENDENTE = 189.59
+
+# (limite_superior_da_faixa, aliquota)
+FAIXAS_INSS = (
+    (1412.00, 0.075),
+    (2666.68, 0.09),
+    (4000.03, 0.12),
+    (7786.02, 0.14),
+)
+
+# (limite_superior_da_faixa, aliquota, parcela_a_deduzir)
+FAIXAS_IRRF = (
+    (2259.20, 0.0, 0.0),
+    (2826.65, 0.075, 169.44),
+    (3751.05, 0.15, 381.44),
+    (4664.68, 0.225, 662.77),
+    (float("inf"), 0.275, 896.00),
+)
+
 # este modulo calcula o salario liquido do funcionario considerando
 # horas extras descontos de INSS e IRRF e bonus de produtividade
 # CUIDADO ao alterar pq muita coisa depende disso aqui
@@ -18,8 +39,8 @@ def calcular_folha(funcionario):
     horas_extras = funcionario["horas_extras"]
     salario_base = funcionario["salario_base"]
     # 220 = horas mensais padrao no Brasil
-    valor_da_hora = salario_base / 220
-    valor_horas_extras = horas_extras * valor_da_hora * 1.5
+    valor_da_hora = salario_base / HORAS_MENSAIS
+    valor_horas_extras = horas_extras * valor_da_hora * ADICIONAL_HORA_EXTRA
 
     # bonus
     if funcionario["tem_bonus"] == True:
@@ -61,7 +82,7 @@ def calcular_folha(funcionario):
 
     # IRRF - usa base_irrf de calculo (salario bruto - INSS - deducao por dependentes)
     dependentes = funcionario["dependentes"]
-    base_irrf = salario_bruto - inss - dependentes * 189.59  # 189.59 = deducao por dependente
+    base_irrf = salario_bruto - inss - dependentes * DEDUCAO_POR_DEPENDENTE
     if base_irrf <= 2259.20:
         irrf = 0
     else:
