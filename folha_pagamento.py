@@ -1,8 +1,4 @@
-"""Calculadora de Folha de Pagamento - VERSAO INICIAL (com smells).
-
-Este arquivo funciona corretamente, mas contém vários problemas de
-qualidade que o aluno deve identificar e refatorar.
-"""
+"""Calculo da folha de pagamento mensal: horas extras, bonus, INSS e IRRF."""
 
 HORAS_MENSAIS = 220
 ADICIONAL_HORA_EXTRA = 1.5
@@ -24,11 +20,6 @@ FAIXAS_IRRF = (
     (4664.68, 0.225, 662.77),
     (float("inf"), 0.275, 896.00),
 )
-
-# este modulo calcula o salario liquido do funcionario considerando
-# horas extras descontos de INSS e IRRF e bonus de produtividade
-# CUIDADO ao alterar pq muita coisa depende disso aqui
-
 
 def calcular_valor_horas_extras(salario_base, horas_extras):
     valor_da_hora = salario_base / HORAS_MENSAIS
