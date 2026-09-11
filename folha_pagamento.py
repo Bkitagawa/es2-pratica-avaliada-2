@@ -52,52 +52,24 @@ def calcular_folha(funcionario):
     salario_bruto = salario_base + valor_horas_extras + bonus
 
     # INSS - tabela 2024 simplificada
-    if salario_bruto <= 1412:
-        inss = salario_bruto * 0.075
+    contribuicao = 0
+    piso_da_faixa = 0
+    for teto_da_faixa, aliquota in FAIXAS_INSS:
+        if salario_bruto <= teto_da_faixa:
+            inss = contribuicao + (salario_bruto - piso_da_faixa) * aliquota
+            break
+        contribuicao += (teto_da_faixa - piso_da_faixa) * aliquota
+        piso_da_faixa = teto_da_faixa
     else:
-        if salario_bruto <= 2666.68:
-            # faixa 2
-            inss = 1412 * 0.075 + (salario_bruto - 1412) * 0.09
-        else:
-            if salario_bruto <= 4000.03:
-                # faixa 3
-                inss = 1412 * 0.075 + (2666.68 - 1412) * 0.09 + (salario_bruto - 2666.68) * 0.12
-            else:
-                if salario_bruto <= 7786.02:
-                    # faixa 4
-                    inss = (
-                        1412 * 0.075
-                        + (2666.68 - 1412) * 0.09
-                        + (4000.03 - 2666.68) * 0.12
-                        + (salario_bruto - 4000.03) * 0.14
-                    )
-                else:
-                    # teto
-                    inss = (
-                        1412 * 0.075
-                        + (2666.68 - 1412) * 0.09
-                        + (4000.03 - 2666.68) * 0.12
-                        + (7786.02 - 4000.03) * 0.14
-                    )
+        inss = contribuicao
 
     # IRRF - usa base_irrf de calculo (salario bruto - INSS - deducao por dependentes)
     dependentes = funcionario["dependentes"]
     base_irrf = salario_bruto - inss - dependentes * DEDUCAO_POR_DEPENDENTE
-    if base_irrf <= 2259.20:
-        irrf = 0
-    else:
-        if base_irrf <= 2826.65:
-            irrf = base_irrf * 0.075 - 169.44
-        else:
-            if base_irrf <= 3751.05:
-                irrf = base_irrf * 0.15 - 381.44
-            else:
-                if base_irrf <= 4664.68:
-                    irrf = base_irrf * 0.225 - 662.77
-                else:
-                    irrf = base_irrf * 0.275 - 896.00
-    if irrf < 0:
-        irrf = 0
+    for teto_da_faixa, aliquota, parcela_a_deduzir in FAIXAS_IRRF:
+        if base_irrf <= teto_da_faixa:
+            irrf = max(base_irrf * aliquota - parcela_a_deduzir, 0)
+            break
 
     # liquido
     salario_liquido = salario_bruto - inss - irrf
